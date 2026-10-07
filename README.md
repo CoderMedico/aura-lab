@@ -22,11 +22,7 @@ Plain HTML, CSS and JavaScript. No build step, no server.
 | `images/` | The 16 emblems as standalone SVG files |
 | `og-image.png` | The preview picture shown when your link is shared |
 
-## Put it online (free)
-
-**Netlify Drop:** go to https://app.netlify.com/drop and drag this whole folder onto the page.
-
-**GitHub Pages:** create a repository, upload all files, then Settings > Pages > Deploy from branch (main, root).
+## Site: https://codermedico.github.io/aura-lab/
 
 ## After you have a real address
 
