@@ -1,0 +1,257 @@
+/* Custom Glassmorphism & UI Accents */
+.glass-card {
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+:where(.light) .glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(15, 23, 42, 0.1);
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, #a855f7, #6366f1, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-grid-pattern {
+  background-size: 30px 30px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(156, 163, 175, 0.3); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(156, 163, 175, 0.5); }
+
+/* ==========================================================================
+   NAV SLIDING PILL
+   ========================================================================== */
+.nav-btn { color: #94a3b8; transition: color .25s; }
+.nav-btn:not(.active):hover { color: #fff; }
+.nav-btn.active { color: #fff; }
+.light .nav-btn { color: #475569; }
+.light .nav-btn:not(.active):hover { color: #0f172a; }
+.light .nav-btn.active { color: #fff; }
+
+/* ==========================================================================
+   DAY MODE
+   ========================================================================== */
+body.light { background-color: #f1f5f9; color: #0f172a; }
+body.light.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(15,23,42,.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15,23,42,.05) 1px, transparent 1px);
+}
+.light .glass-card { box-shadow: 0 4px 24px rgba(15, 23, 42, .06); }
+
+/* header, nav, logo */
+.light header { background: rgba(255,255,255,.8); border-color: #e2e8f0; }
+.light #mainNav { background: #e2e8f0; border-color: #cbd5e1; }
+.light #navLogo span.font-display { color: #0f172a; }
+
+/* headings */
+.light h1.text-white, .light h2.text-white, .light h3.text-white,
+.light h4.text-white, .light p.text-white { color: #0f172a; }
+
+/* greys */
+.light .text-slate-200 { color: #1e293b; }
+.light .text-slate-300 { color: #334155; }
+.light .text-slate-400 { color: #475569; }
+.light .group:hover .text-slate-200 { color: #0f172a; }
+
+/* accent text (too pale on white) */
+.light .text-indigo-300 { color: #4338ca; }
+.light .text-indigo-400 { color: #4f46e5; }
+.light .text-purple-300 { color: #6d28d9; }
+.light .text-purple-400 { color: #7c3aed; }
+.light .text-emerald-400 { color: #059669; }
+.light .text-sky-400 { color: #0284c7; }
+.light .text-amber-400 { color: #d97706; }
+.light #resultBadgeGroup { color: #c084fc; } /* badge stays dark */
+
+/* backgrounds & borders */
+.light .bg-slate-800 { background: #e2e8f0; }
+.light .bg-slate-900\/80 { background: #ffffff; }
+.light .border-slate-700 { border-color: #cbd5e1; }
+.light .border-slate-800 { border-color: #e2e8f0; }
+
+/* form fields & buttons */
+.light select { background: #fff; color: #0f172a; border-color: #cbd5e1; }
+.light #explorePersonasBtn { color: #0f172a; }
+.light #explorePersonasBtn:hover { background: #fff; border-color: #a5b4fc; }
+.light #randomFactBtn:hover, .light #themeToggleBtn:hover,
+.light #exitQuizBtn:hover, .light #closeModalBtn:hover,
+.light #restartQuizBtn:hover,
+.light .gallery-filter-btn.bg-slate-800:hover { color: #0f172a; }
+.light #restartQuizBtn:hover { background: #e2e8f0; }
+
+/* toast & modal */
+.light #toastNotification { color: #0f172a; background: rgba(255,255,255,.95); }
+.light #personaModal { background: rgba(241, 245, 249, .75); }
+
+/* ==========================================================================
+   5-POINT SCALE DOTS
+   ========================================================================== */
+.scale-dot {
+  border: 2px solid var(--dot, #94a3b8);
+  border-radius: 9999px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.scale-dot[data-side="left"]  { --dot: #10b981; }
+.scale-dot[data-side="mid"]   { --dot: #94a3b8; }
+.scale-dot[data-side="right"] { --dot: #a855f7; }
+.scale-dot:hover { transform: scale(1.12); background: color-mix(in srgb, var(--dot) 28%, transparent); }
+.scale-dot.selected {
+  background: var(--dot);
+  transform: scale(1.08);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dot) 28%, transparent);
+}
+
+/* day-mode touches for the new screens */
+.light .text-pink-400 { color: #db2777; }
+.light #quizBackBtn:hover, .light #quizSkipBtn:hover,
+.light #modeBackBtn:hover, .light [data-discard]:hover { color: #0f172a; }
+
+/* ==========================================================================
+   MOBILE BOTTOM NAV + FOOTER
+   ========================================================================== */
+#mobileNav {
+  background: rgba(2, 6, 23, 0.88);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mnav-btn {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 9px 0 8px;
+  font-size: 10px; font-weight: 700; letter-spacing: .04em;
+  color: #94a3b8;
+  transition: color .2s;
+}
+.mnav-ico { font-size: 20px; line-height: 1; }
+.mnav-btn.active { color: #818cf8; }
+.mnav-btn.active::before {
+  content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px;
+  border-radius: 0 0 6px 6px; background: linear-gradient(90deg, #6366f1, #ec4899);
+}
+.light #mobileNav { background: rgba(255, 255, 255, 0.92); border-top-color: #e2e8f0; }
+.light .mnav-btn { color: #64748b; }
+.light .mnav-btn.active { color: #4f46e5; }
+
+@media (max-width: 767px) {
+  body { padding-bottom: 68px; }
+  #toastNotification { bottom: 84px !important; left: 16px; right: 16px; }
+}
+
+.site-footer { border-top: 1px solid rgba(148, 163, 184, 0.18); }
+
+/* ==========================================================================
+   PLAY ZONE
+   ========================================================================== */
+.game-opt:hover { border-color: rgba(99, 102, 241, .7); background: rgba(99, 102, 241, .1); }
+.game-opt.opt-correct { border-color: #10b981 !important; background: rgba(16, 185, 129, .18) !important; }
+.game-opt.opt-wrong   { border-color: #f43f5e !important; background: rgba(244, 63, 94, .18) !important; }
+.trophy.locked { opacity: .45; filter: grayscale(1); }
+.light .game-opt:hover { background: rgba(99, 102, 241, .08); }
+.light #heroPlayBtn:hover { color: #4338ca; }
+.light .text-slate-500 { color: #64748b; }
+
+/* ==========================================================================
+   SHARE CARD POPUP
+   ========================================================================== */
+.card-fmt-btn.active { background: #4f46e5; color: #fff; box-shadow: 0 4px 14px rgba(79, 70, 229, .4); }
+.light #cardModal { background: rgba(241, 245, 249, .78); }
+.light #closeCardModalBtn:hover, .light #cardShareBtn:hover, .light #cardCopyBtn:hover { color: #0f172a; }
+.light .card-fmt-btn.active { color: #fff; }
+
+/* ==========================================================================
+   MODERN DROPDOWNS  (built by dropdown.js)
+   ========================================================================== */
+.dd { position: relative; display: inline-block; min-width: 0; }
+.dd-block { display: block; width: 100%; }
+.dd:not(.dd-block) { min-width: 220px; }
+.dd-native { position: absolute !important; width: 1px !important; height: 1px !important; opacity: 0; pointer-events: none; overflow: hidden; }
+
+.dd-trigger {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 14px; border-radius: 16px; text-align: left;
+  font-size: 14px; font-weight: 600; color: #fff;
+  background: rgba(15, 23, 42, .9); border: 1px solid #334155;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+}
+.dd-block .dd-trigger { padding: 12px 16px; }
+.dd-trigger:hover { border-color: #6366f1; }
+.dd-trigger:focus-visible, .dd.open .dd-trigger { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99, 102, 241, .28); }
+.dd-label { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.dd-caret { flex-shrink: 0; color: #94a3b8; transition: transform .2s; }
+.dd.open .dd-caret { transform: rotate(180deg); color: #818cf8; }
+
+.dd-code { font-family: "Space Grotesk", sans-serif; font-weight: 700; letter-spacing: .02em; }
+.dd-name { color: #94a3b8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dd-name.dd-solo { color: inherit; font-weight: 600; }
+
+.dd-panel {
+  position: absolute; left: 0; z-index: 60; min-width: 100%; width: max-content; max-width: min(92vw, 340px);
+  top: calc(100% + 8px);
+  /* 40px rows: about 5.5 rows show, so the half-cut row hints that it scrolls */
+  max-height: 228px; overflow-y: auto; overscroll-behavior: contain;
+  padding: 6px; border-radius: 18px;
+  background: rgba(15, 23, 42, .97); border: 1px solid rgba(255, 255, 255, .12);
+  box-shadow: 0 18px 40px rgba(2, 6, 23, .55);
+  opacity: 0; visibility: hidden; transform: translateY(-6px) scale(.98); transform-origin: top;
+  transition: opacity .15s, transform .15s, visibility 0s .15s;
+  scrollbar-width: thin; scrollbar-color: rgba(148, 163, 184, .4) transparent;
+}
+.dd.open .dd-panel { opacity: 1; visibility: visible; transform: none; transition: opacity .15s, transform .15s; }
+.dd.up .dd-panel { top: auto; bottom: calc(100% + 8px); transform-origin: bottom; transform: translateY(6px) scale(.98); }
+.dd.up.open .dd-panel { transform: none; }
+.dd-panel::-webkit-scrollbar { width: 6px; }
+.dd-panel::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, .4); border-radius: 99px; }
+
+.dd-item {
+  display: flex; align-items: baseline; gap: 8px; height: 40px; padding: 0 12px; border-radius: 12px;
+  font-size: 14px; color: #e2e8f0; cursor: pointer; position: relative;
+}
+.dd-item .dd-code { color: #fff; flex-shrink: 0; align-self: center; }
+.dd-item.active { background: rgba(99, 102, 241, .16); }
+.dd-item.selected { background: rgba(99, 102, 241, .28); }
+.dd-item .dd-name { flex: 1; align-self: center; }
+.dd-check { margin-left: auto; align-self: center; font-size: 12px; font-weight: 800; color: #a5b4fc; opacity: 0; }
+.dd-item.selected .dd-check { opacity: 1; }
+
+/* lift the card that owns an open menu above the cards after it */
+.glass-card.dd-raise { position: relative; z-index: 40; }
+
+/* day mode */
+.light .dd-trigger { background: #fff; color: #0f172a; border-color: #cbd5e1; }
+.light .dd-trigger:hover { border-color: #818cf8; }
+.light .dd-caret { color: #64748b; }
+.light .dd-name { color: #64748b; }
+.light .dd-panel { background: rgba(255, 255, 255, .98); border-color: #e2e8f0; box-shadow: 0 18px 40px rgba(15, 23, 42, .16); scrollbar-color: rgba(100, 116, 139, .45) transparent; }
+.light .dd-item { color: #1e293b; }
+.light .dd-item .dd-code { color: #0f172a; }
+.light .dd-item.active { background: #eef2ff; }
+.light .dd-item.selected { background: #e0e7ff; }
+.light .dd-check { color: #4f46e5; }
+
+/* ==========================================================================
+   PERSONA CARD GROUP BADGE (readable in both day and night mode)
+   ========================================================================== */
+.persona-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 9999px;
+  color: #fff; background: rgba(2, 6, 23, .72);
+  border: 1px solid rgba(255, 255, 255, .25);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
