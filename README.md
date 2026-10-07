@@ -24,12 +24,6 @@ Plain HTML, CSS and JavaScript. No build step, no server.
 
 ## Site: https://codermedico.github.io/aura-lab/
 
-## After you have a real address
-
-1. Open `index.html` and change `content="og-image.png"` (twice) to the full address, for example
-   `content="https://your-site.netlify.app/og-image.png"`. Chat apps need the full address to show the preview picture.
-2. Share links only work for other people once the site is online (not from a file on your computer).
-
 ## Notes
 
 - Everything a visitor saves (history, streak, trophies) stays in their own browser.
