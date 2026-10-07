@@ -1009,8 +1009,10 @@ function openPersonaModal(p) {
     <div class="pt-5 border-t border-slate-700/50">${profileSectionsHTML(p.code, true)}</div>
   `;
 
-  document.getElementById('modalScroll').scrollTop = 0;
-  openOverlay('personaModal');
+    openOverlay('personaModal');
+  const sc = document.getElementById('modalScroll');
+  sc.scrollTop = 0;
+  requestAnimationFrame(() => { sc.scrollTop = 0; });
 }
 
 document.getElementById('closeModalBtn').addEventListener('click', () => closeOverlay('personaModal'));
