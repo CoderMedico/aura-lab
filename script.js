@@ -236,6 +236,9 @@ window.addEventListener('resize', () => updateNavIndicator(currentNavKey, true))
 if (document.fonts && document.fonts.ready) {
   document.fonts.ready.then(() => updateNavIndicator(currentNavKey, true));
 }
+if (window.ResizeObserver) {
+  new ResizeObserver(() => updateNavIndicator(currentNavKey, true)).observe(document.getElementById('mainNav'));
+}
 
 function switchView(targetViewKey) {
   Object.keys(views).forEach(key => {
@@ -246,9 +249,10 @@ function switchView(targetViewKey) {
     }
   });
   updateNavIndicator(targetViewKey);
+  try { sessionStorage.setItem('aura_view', targetViewKey); } catch (e) {}
   if (targetViewKey === 'hero' || targetViewKey === 'mode') renderResumeBanners();
   if (targetViewKey === 'play') renderPlayZone();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  window.scrollTo(0, 0);
 }
 
 // Nav Button Click Handlers
@@ -816,20 +820,25 @@ function renderBreakdown(r, hasAT) {
   }, 120);
 }
 
-/* ---------- radar chart (draws the person's own percentages) ---------- */
+/* ---------- radar chart (draws the person's own percentages, sharp on any screen) ---------- */
 function renderRadarChart(data) {
   const canvas = document.getElementById('radarCanvas');
   if (!canvas || !data) return;
+
+  const SIZE = 300;                                            // design units
+  const cssSize = canvas.getBoundingClientRect().width || SIZE;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const px = Math.round(cssSize * dpr);
+  if (canvas.width !== px) { canvas.width = px; canvas.height = px; }
+
   const ctx = canvas.getContext('2d');
-  const width = canvas.width;
-  const height = canvas.height;
-  const centerX = width / 2;
-  const centerY = height / 2;
+  ctx.setTransform(px / SIZE, 0, 0, px / SIZE, 0, 0);
+  ctx.clearRect(0, 0, SIZE, SIZE);
+
+  const centerX = SIZE / 2;
+  const centerY = SIZE / 2;
   const radius = 88;
   const isLight = document.body.classList.contains('light');
-
-  ctx.clearRect(0, 0, width, height);
-
   const numAxes = data.axes.length;
   const angleStep = (Math.PI * 2) / numAxes;
 
@@ -880,6 +889,15 @@ function renderRadarChart(data) {
   ctx.stroke();
 }
 
+// redraw crisply if the window is resized or rotated
+let radarResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(radarResizeTimer);
+  radarResizeTimer = setTimeout(() => {
+    if (currentRadarData && !views.result.classList.contains('hidden')) renderRadarChart(currentRadarData);
+  }, 150);
+});
+
 /* ==========================================================================
    PERSONAS GALLERY & MODAL ENGINE
    ========================================================================== */
@@ -928,6 +946,30 @@ document.querySelectorAll('.gallery-filter-btn').forEach(btn => {
   });
 });
 
+/* ---------- popups: Back button / Esc / outside-tap close them ---------- */
+const OVERLAY_IDS = ['personaModal', 'cardModal'];
+function openOverlay(id) {
+  const el = document.getElementById(id);
+  if (!el.classList.contains('hidden')) return;
+  el.classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  history.pushState({ overlay: id }, '');
+}
+function closeOverlay(id) {
+  const el = document.getElementById(id);
+  if (el.classList.contains('hidden')) return;
+  el.classList.add('hidden');
+  document.body.style.overflow = '';
+  if (history.state && history.state.overlay === id) history.back();
+}
+window.addEventListener('popstate', () => {
+  OVERLAY_IDS.forEach(id => document.getElementById(id).classList.add('hidden'));
+  document.body.style.overflow = '';
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') OVERLAY_IDS.forEach(closeOverlay);
+});
+
 function openPersonaModal(p) {
   trackTypeSeen(p.code);
   const modal = document.getElementById('personaModal');
@@ -967,11 +1009,13 @@ function openPersonaModal(p) {
     <div class="pt-5 border-t border-slate-700/50">${profileSectionsHTML(p.code, true)}</div>
   `;
 
-  modal.classList.remove('hidden');
+  document.getElementById('modalScroll').scrollTop = 0;
+  openOverlay('personaModal');
 }
 
-document.getElementById('closeModalBtn').addEventListener('click', () => {
-  document.getElementById('personaModal').classList.add('hidden');
+document.getElementById('closeModalBtn').addEventListener('click', () => closeOverlay('personaModal'));
+document.getElementById('personaModal').addEventListener('click', e => {
+  if (e.target.id === 'personaModal') closeOverlay('personaModal');
 });
 
 /* ==========================================================================
@@ -1094,25 +1138,29 @@ document.getElementById('randomFactBtn').addEventListener('click', () => {
   showToast(fact);
 });
 
-/* THEME TOGGLE ENGINE */
+/* THEME TOGGLE ENGINE (the saved theme is also applied by a tiny script in <head>, so there is no flicker) */
+function applyTheme(light) {
+  document.body.classList.toggle('light', light);
+  const el = document.documentElement;
+  el.classList.toggle('light', light);
+  el.style.backgroundColor = light ? '#f1f5f9' : '#020617';
+  el.style.colorScheme = light ? 'light' : 'dark';
+  document.getElementById('themeIcon').textContent = light ? '☀️' : '🌙';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', light ? '#f1f5f9' : '#020617');
+}
+
 document.getElementById('themeToggleBtn').addEventListener('click', () => {
-  const isLight = document.body.classList.toggle('light');
+  const isLight = !document.body.classList.contains('light');
+  applyTheme(isLight);
   try { localStorage.setItem('aura_theme', isLight ? 'light' : 'dark'); } catch (e) {}
-  document.getElementById('themeIcon').textContent = isLight ? '☀️' : '🌙';
   bumpStat('themeSwitches');
   if (currentRadarData && !views.result.classList.contains('hidden')) {
     renderRadarChart(currentRadarData);
   }
 });
 
-/* Day mode is the default. If the visitor picked a theme, remember it on refresh. */
-(function applySavedTheme() {
-  let saved = null;
-  try { saved = localStorage.getItem('aura_theme'); } catch (e) {}
-  const light = saved ? saved === 'light' : true;   // true = day mode is the default
-  document.body.classList.toggle('light', light);
-  document.getElementById('themeIcon').textContent = light ? '☀️' : '🌙';
-})();
+applyTheme(!!window.__light);
 
 /* DOWNLOAD BADGE IMAGE GENERATOR VIA HTML CANVAS */
 /* ==========================================================================
@@ -1356,7 +1404,7 @@ async function renderCardPreview() {
 }
 async function openCardModal() {
   if (!currentResultPersona) return;
-  document.getElementById('cardModal').classList.remove('hidden');
+  openOverlay('cardModal');
   await renderCardPreview();
   let canShareFiles = false;
   try { canShareFiles = !!(navigator.canShare && navigator.canShare({ files: [new File(['x'], 'a.png', { type: 'image/png' })] })); } catch (e) { /* ignore */ }
@@ -1392,8 +1440,8 @@ async function shareCardFile() {
 }
 
 document.getElementById('downloadBadgeBtn').addEventListener('click', openCardModal);
-document.getElementById('closeCardModalBtn').addEventListener('click', () => document.getElementById('cardModal').classList.add('hidden'));
-document.getElementById('cardModal').addEventListener('click', e => { if (e.target.id === 'cardModal') e.currentTarget.classList.add('hidden'); });
+document.getElementById('closeCardModalBtn').addEventListener('click', () => closeOverlay('cardModal'));
+document.getElementById('cardModal').addEventListener('click', e => { if (e.target.id === 'cardModal') closeOverlay('cardModal'); });
 document.querySelectorAll('.card-fmt-btn').forEach(b => b.addEventListener('click', () => { cardFormat = b.dataset.fmt; renderCardPreview(); }));
 document.getElementById('cardDownloadBtn').addEventListener('click', downloadCard);
 document.getElementById('cardShareBtn').addEventListener('click', shareCardFile);
@@ -1407,10 +1455,50 @@ document.getElementById('cardCopyBtn').addEventListener('click', async () => {
 renderResumeBanners();
 
 /* If the page was opened from a shared link, show that result */
-loadSharedResult();
+/* Remember which tab the visitor was on when they refresh (per browser tab) */
+function restoreLastView() {
+  let v = null;
+  try { v = sessionStorage.getItem('aura_view'); } catch (e) {}
+  if (v === 'gallery') renderGallery('all');
+  else if (v === 'compare') initCompareView();
+  else if (v === 'history') renderHistoryList();
+  else if (v === 'mode') showModeSelect();
+  else if (v !== 'play') return;   // hero, quiz, result: stay on home (quiz has its own Resume banner)
+  switchView(v);
+}
+const openedShared = loadSharedResult();
+if (!openedShared) restoreLastView();
 
 /* ---------- start-up: streak/trophies + offline support ---------- */
 initEngagement();
 if ('serviceWorker' in navigator && /^https?:$/.test(window.location.protocol)) {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+
+
+/* ---------- install-app button ---------- */
+let deferredInstall = null;
+const installBtn = document.getElementById('installBtn');
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+function showInstallBtn() { installBtn.classList.remove('hidden'); installBtn.classList.add('flex'); }
+function hideInstallBtn() { installBtn.classList.add('hidden'); installBtn.classList.remove('flex'); }
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredInstall = e;
+  if (!isStandalone) showInstallBtn();
+});
+window.addEventListener('appinstalled', hideInstallBtn);
+if (isIOS && !isStandalone) showInstallBtn();   // iPhones have no install prompt, so we show a hint
+
+installBtn.addEventListener('click', async () => {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    await deferredInstall.userChoice;
+    deferredInstall = null;
+    hideInstallBtn();
+  } else if (isIOS) {
+    showToast('Tap the Share icon, then "Add to Home Screen"');
+  }
+});

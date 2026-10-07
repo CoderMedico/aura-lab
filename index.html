@@ -2,6 +2,18 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <!-- Apply saved theme BEFORE first paint (stops the night-to-day flicker) -->
+  <script>
+    (function () {
+      var light = true; // day mode is the default
+      try { var s = localStorage.getItem('aura_theme'); if (s) light = (s === 'light'); } catch (e) {}
+      window.__light = light;
+      var el = document.documentElement;
+      el.classList.toggle('light', light);
+      el.style.backgroundColor = light ? '#f1f5f9' : '#020617';
+      el.style.colorScheme = light ? 'light' : 'dark';
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AURA.lab ✦ Decode Your Type</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='1' x2='1' y2='0'%3E%3Cstop offset='0' stop-color='%236366f1'/%3E%3Cstop offset='.5' stop-color='%23a855f7'/%3E%3Cstop offset='1' stop-color='%23ec4899'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='46' font-family='Arial,sans-serif' font-size='40' font-weight='bold' text-anchor='middle' fill='white'%3EA%3C/text%3E%3C/svg%3E">
@@ -24,48 +36,16 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
   
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-            display: ['"Space Grotesk"', 'sans-serif'],
-          },
-          colors: {
-            brand: {
-              50: '#f0f5ff',
-              100: '#e0ebff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-            },
-            analyst: '#8b5cf6',
-            diplomat: '#10b981',
-            sentinel: '#0ea5e9',
-            explorer: '#f59e0b',
-          },
-          animation: {
-            'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-            'float': 'float 6s ease-in-out infinite',
-          },
-          keyframes: {
-            float: {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-10px)' },
-            }
-          }
-        }
-      }
-    }
-  </script>
+  <!-- Tailwind CSS CDN (still active so the site works right now).
+       TO SWITCH TO YOUR OWN BUILT CSS: run the build (see instructions), then delete this CDN <script>
+       and the "tailwind.config = {...}" <script> below, and instead put this line AFTER the style.css link:
+         <link rel="stylesheet" href="tailwind.css"> -->
 
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="tailwind.css">
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col selection:bg-brand-500 selection:text-white transition-colors duration-300 relative overflow-x-hidden bg-grid-pattern">
+  <script>document.body.classList.toggle('light', window.__light);</script>
 
   <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
     <div class="absolute -top-40 -left-40 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse-slow"></div>
@@ -105,6 +85,8 @@
           <span class="text-amber-400">💡</span> Fun Fact
         </button>
         
+        <button id="installBtn" class="hidden items-center gap-1 px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-bold transition-all">⬇ App</button>
+
         <button id="themeToggleBtn" class="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800 text-slate-300 hover:text-white transition-all">
           <span id="themeIcon">🌙</span>
         </button>
@@ -520,34 +502,33 @@
 
   <!-- MODAL: PERSONA DETAIL POPUP -->
   <div id="personaModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden transition-opacity">
-    <div class="glass-card max-w-3xl w-full p-6 sm:p-8 rounded-3xl space-y-6 relative border border-slate-700 max-h-[90vh] overflow-y-auto">
-      <button id="closeModalBtn" class="absolute top-4 right-4 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white">
-        ✕
-      </button>
-
-      <div id="modalContent">
-        <!-- Populated dynamically -->
+    <div class="glass-card max-w-3xl w-full rounded-3xl relative border border-slate-700 overflow-hidden">
+      <button id="closeModalBtn" aria-label="Close" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white">✕</button>
+      <div id="modalScroll" class="max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+        <div id="modalContent" class="space-y-6"></div>
       </div>
     </div>
   </div>
 
   <!-- SHARE CARD POPUP -->
   <div id="cardModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md hidden">
-    <div class="glass-card max-w-lg w-full p-5 sm:p-6 rounded-3xl space-y-4 relative border border-slate-700 max-h-[95vh] overflow-y-auto">
-      <button id="closeCardModalBtn" class="absolute top-4 right-4 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white">✕</button>
-      <div class="pr-10">
-        <h3 class="font-display font-bold text-xl text-white">Your share card</h3>
-        <p class="text-xs text-slate-400">Save it, post it, and see what your friends get.</p>
-      </div>
-      <div class="flex gap-2">
-        <button class="card-fmt-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition-all" data-fmt="story">Story · 9:16</button>
-        <button class="card-fmt-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition-all" data-fmt="post">Post · 4:5</button>
-      </div>
-      <img id="cardPreview" alt="Your result card" class="max-h-[54vh] w-auto max-w-full mx-auto rounded-2xl shadow-2xl transition-opacity">
-      <div class="grid grid-cols-2 gap-3">
-        <button id="cardDownloadBtn" class="col-span-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-sm shadow-lg hover:scale-[1.02] transition-all">⬇ Download image</button>
-        <button id="cardShareBtn" class="hidden px-5 py-3 rounded-xl glass-card text-sm font-bold text-slate-200 transition-all">📤 Share</button>
-        <button id="cardCopyBtn" class="px-5 py-3 rounded-xl glass-card text-sm font-bold text-slate-200 transition-all">🔗 Copy caption + link</button>
+    <div class="glass-card max-w-lg w-full rounded-3xl relative border border-slate-700 overflow-hidden">
+      <button id="closeCardModalBtn" aria-label="Close" class="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white">✕</button>
+      <div class="max-h-[95vh] overflow-y-auto p-5 sm:p-6 space-y-4">
+        <div class="pr-10">
+          <h3 class="font-display font-bold text-xl text-white">Your share card</h3>
+          <p class="text-xs text-slate-400">Save it, post it, and see what your friends get.</p>
+        </div>
+        <div class="flex gap-2">
+          <button class="card-fmt-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition-all" data-fmt="story">Story · 9:16</button>
+          <button class="card-fmt-btn px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-300 transition-all" data-fmt="post">Post · 4:5</button>
+        </div>
+        <img id="cardPreview" alt="Your result card" class="max-h-[54vh] w-auto max-w-full mx-auto rounded-2xl shadow-2xl transition-opacity">
+        <div class="grid grid-cols-2 gap-3">
+          <button id="cardDownloadBtn" class="col-span-2 px-5 py-3 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-sm shadow-lg hover:scale-[1.02] transition-all">⬇ Download image</button>
+          <button id="cardShareBtn" class="hidden px-5 py-3 rounded-xl glass-card text-sm font-bold text-slate-200 transition-all">📤 Share</button>
+          <button id="cardCopyBtn" class="px-5 py-3 rounded-xl glass-card text-sm font-bold text-slate-200 transition-all">🔗 Copy caption + link</button>
+        </div>
       </div>
     </div>
   </div>
