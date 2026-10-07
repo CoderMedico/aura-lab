@@ -1,10 +1,10 @@
 /* AURA.lab service worker: makes the site installable and usable offline.
    Strategy: try the network first (so updates always show up), fall back to the cache offline.
    Bump CACHE when you want to force everyone to refresh. */
-const CACHE = "aura-v5";
+const CACHE = "aura-v6";
 const CORE = [
   "./", "index.html", "style.css", "tailwind.css", "script.js", "questions.js", "profiles.js", "art.js",
-  "characters.js", "quotes.js", "daily.js", "achievements.js", "playzone.js", "dropdown.js",
+  "characters.js", "quotes.js", "daily.js", "achievements.js", "playzone.js", "dropdown.js", "leaderboard.js",
   "manifest.json", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png"
 ];
 
@@ -26,6 +26,7 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const req = event.request;
   if (req.method !== "GET" || !req.url.startsWith("http")) return;
+  if (req.url.includes("supabase.co")) return;   // never cache live leaderboard data
   event.respondWith(
     fetch(req)
       .then(res => {
