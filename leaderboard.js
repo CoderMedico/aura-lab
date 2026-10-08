@@ -6,8 +6,8 @@
    Styles live in extras.css (plain CSS, no Tailwind rebuild needed).
    ========================================================================== */
 (function () {
-  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";        // e.g. https://abcdxyz.supabase.co
-  const SUPABASE_KEY = "PASTE_YOUR_PUBLIC_KEY_HERE";         // the "anon public" or "publishable" key
+  const SUPABASE_URL = "https://cshattnrzcqbbvovujpy.supabase.co";        // e.g. https://abcdxyz.supabase.co
+  const SUPABASE_KEY = "sb_publishable_Wt0c_ohLNi4qsVc1DIpDQw_5yc3msvx";         // the "anon public" or "publishable" key
 
   const TABLE = SUPABASE_URL + "/rest/v1/scores";
   const ready = !/PASTE_YOUR/.test(SUPABASE_URL + SUPABASE_KEY);
