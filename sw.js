@@ -1,7 +1,7 @@
 /* AURA.lab service worker: makes the site installable and usable offline.
    Strategy: try the network first (so updates always show up), fall back to the cache offline.
    Bump CACHE when you want to force everyone to refresh. */
-const CACHE = "aura-v8";
+const CACHE = "aura-v9";
 const CORE = [
   "./", "index.html", "style.css", "tailwind.css", "script.js", "questions.js", "profiles.js", "art.js",
   "characters.js", "quotes.js", "daily.js", "achievements.js", "playzone.js", "dropdown.js", "leaderboard.js", "extras.css",

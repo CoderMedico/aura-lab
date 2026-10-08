@@ -2,6 +2,7 @@
    DAILY FORECAST
    The same type gets the same forecast all day, and a new one tomorrow.
    (It is seeded from the date + the type, so it needs no server.)
+   The lucky color, lucky numbers and best energy now belong to the chosen type.
    For entertainment only.
    ========================================================================== */
 
@@ -38,13 +39,33 @@ const DAILY_WARNINGS = {
   explorer: ["Beware of impulse purchases.", "Don't skip the boring-but-important task.", "Beware of 'I'll do it later'.", "Don't say something you'll regret in the heat of the moment.", "Beware of accidentally ghosting a friend.", "Don't ignore your own tiredness.", "Beware of too many open plans.", "Don't forget to charge your phone."]
 };
 
-const DAILY_COLORS = [
-  { name: "Midnight Blue", hex: "#1e3a8a" }, { name: "Sunset Orange", hex: "#f97316" },
-  { name: "Mint Green", hex: "#34d399" }, { name: "Royal Purple", hex: "#7c3aed" },
-  { name: "Rose Pink", hex: "#f43f5e" }, { name: "Sky Blue", hex: "#38bdf8" },
-  { name: "Golden Yellow", hex: "#facc15" }, { name: "Forest Green", hex: "#166534" },
-  { name: "Cherry Red", hex: "#dc2626" }, { name: "Silver Grey", hex: "#94a3b8" }
-];
+/* Lucky colors that match each family of types (4 each, one is picked per day) */
+const DAILY_COLORS_BY_GROUP = {
+  analyst: [
+    { name: "Royal Purple", hex: "#7c3aed" }, { name: "Midnight Blue", hex: "#1e3a8a" },
+    { name: "Violet Haze", hex: "#a78bfa" }, { name: "Silver Grey", hex: "#94a3b8" }
+  ],
+  diplomat: [
+    { name: "Mint Green", hex: "#34d399" }, { name: "Forest Green", hex: "#166534" },
+    { name: "Ocean Teal", hex: "#14b8a6" }, { name: "Rose Pink", hex: "#f43f5e" }
+  ],
+  sentinel: [
+    { name: "Sky Blue", hex: "#38bdf8" }, { name: "Ocean Blue", hex: "#0284c7" },
+    { name: "Silver Grey", hex: "#94a3b8" }, { name: "Forest Green", hex: "#166534" }
+  ],
+  explorer: [
+    { name: "Sunset Orange", hex: "#f97316" }, { name: "Golden Yellow", hex: "#facc15" },
+    { name: "Cherry Red", hex: "#dc2626" }, { name: "Amber", hex: "#f59e0b" }
+  ]
+};
+
+/* Best energy = the types each type is said to click with most */
+const DAILY_MATCHES = {
+  INTJ: ["ENFP", "ENTP"], INTP: ["ENTJ", "ESTJ"], ENTJ: ["INTP", "INFP"], ENTP: ["INFJ", "INTJ"],
+  INFJ: ["ENTP", "ENFP"], INFP: ["ENFJ", "ENTJ"], ENFJ: ["INFP", "ISFP"], ENFP: ["INTJ", "INFJ"],
+  ISTJ: ["ESFP", "ESTP"], ISFJ: ["ESFP", "ESTP"], ESTJ: ["INTP", "ISTP"], ESFJ: ["ISFP", "ISTP"],
+  ISTP: ["ESFJ", "ESTJ"], ISFP: ["ENFJ", "ESFJ"], ESTP: ["ISFJ", "ISTJ"], ESFP: ["ISTJ", "ISFJ"]
+};
 
 /* ---------- tiny seeded random (same seed = same forecast) ---------- */
 function hashStr(s) {
@@ -66,19 +87,23 @@ function todayKey() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
+/* Every type has its own 3 lucky numbers (always the same for that type); one of them is picked each day */
+function luckyNumbersFor(code) {
+  return [1, 2, 3].map(n => (hashStr(code + "#lucky" + n) % 99) + 1);
+}
+
 /* Build the forecast data for one type (pure function, easy to test) */
 function buildForecast(code, dateKey) {
   const rng = seededRng(hashStr(dateKey + "|" + code));
   const pick = arr => arr[Math.floor(rng() * arr.length)];
   const grp = groupOf(code);
-  const allCodes = Object.keys(DAILY_MOODS);
   return {
     mood: pick(DAILY_MOODS[code]),
     vibe: 45 + Math.floor(rng() * 56),
-    color: pick(DAILY_COLORS),
-    lucky: 1 + Math.floor(rng() * 99),
+    color: pick(DAILY_COLORS_BY_GROUP[grp]),
+    lucky: pick(luckyNumbersFor(code)),
     mission: pick(DAILY_MISSIONS[grp]),
     warning: pick(DAILY_WARNINGS[grp]),
-    match: pick(allCodes.filter(c => c !== code))
+    match: pick(DAILY_MATCHES[code])
   };
 }

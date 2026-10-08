@@ -143,4 +143,8 @@
 
   const _renderPlayZone = window.renderPlayZone;
   window.renderPlayZone = function () { _renderPlayZone(); window.renderLeaderboard(); };
+
+  // if this file finished loading while the Play tab is already open, draw it now
+  const pv = document.getElementById("playView");
+  if (pv && !pv.classList.contains("hidden")) window.renderLeaderboard();
 })();

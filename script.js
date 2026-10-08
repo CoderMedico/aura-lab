@@ -271,8 +271,8 @@ document.getElementById('explorePersonasBtn').addEventListener('click', () => {
   switchView('gallery');
 });
 document.getElementById('navCompareBtn').addEventListener('click', () => {
-  initCompareView();
   switchView('compare');
+  try { initCompareView(); } catch (e) { console.error('Compare view error:', e); }
 });
 document.getElementById('navPlayBtn').addEventListener('click', () => switchView('play'));
 document.getElementById('navHistoryBtn').addEventListener('click', () => {
@@ -1013,7 +1013,7 @@ function openPersonaModal(p) {
   `;
 
   openOverlay('personaModal');
-  const sc = document.getElementById('modalScroll');   // reset AFTER it is visible, otherwise the browser ignores it
+  const sc = document.getElementById('modalScroll') || {};   // reset AFTER it is visible, otherwise the browser ignores it
   sc.scrollTop = 0;
   requestAnimationFrame(() => { sc.scrollTop = 0; });
 }
@@ -1057,6 +1057,14 @@ function initCompareView() {
   updateCompare();
 }
 
+/* Types that are said to click best (kept here so this file works on its own) */
+const SYNERGY_PAIRS = {
+  INTJ: ["ENFP", "ENTP"], INTP: ["ENTJ", "ESTJ"], ENTJ: ["INTP", "INFP"], ENTP: ["INFJ", "INTJ"],
+  INFJ: ["ENTP", "ENFP"], INFP: ["ENFJ", "ENTJ"], ENFJ: ["INFP", "ISFP"], ENFP: ["INTJ", "INFJ"],
+  ISTJ: ["ESFP", "ESTP"], ISFJ: ["ESFP", "ESTP"], ESTJ: ["INTP", "ISTP"], ESFJ: ["ISFP", "ISTP"],
+  ISTP: ["ESFJ", "ESTJ"], ISFP: ["ENFJ", "ESFJ"], ESTP: ["ISFJ", "ISTJ"], ESFP: ["ISTJ", "ISFJ"]
+};
+
 /* Fun synergy report. The same pair always gets the same result (A+B = B+A). */
 function buildSynergy(pA, pB) {
   const A = pA.code, B = pB.code;
@@ -1065,7 +1073,7 @@ function buildSynergy(pA, pB) {
   const jitter = () => Math.floor(rng() * 7) - 3;
   const pick = arr => arr[Math.floor(rng() * arr.length)];
   const clamp = n => Math.max(35, Math.min(99, Math.round(n)));
-  const golden = (DAILY_MATCHES[A] || []).includes(B) || (DAILY_MATCHES[B] || []).includes(A);
+  const golden = (SYNERGY_PAIRS[A] || []).includes(B) || (SYNERGY_PAIRS[B] || []).includes(A);
   const g = golden ? 8 : 0;
   const fCount = (A[2] === 'F' ? 1 : 0) + (B[2] === 'F' ? 1 : 0);
 
@@ -1107,11 +1115,13 @@ function buildSynergy(pA, pB) {
   ];
   const date = pick(dates);
 
-  const qa = TYPE_QUOTES[A], qb = TYPE_QUOTES[B];
+  const TQ = (typeof TYPE_QUOTES !== 'undefined') ? TYPE_QUOTES : {};
+  const CH = (typeof CHARACTERS !== 'undefined') ? CHARACTERS : {};
+  const qa = TQ[A], qb = TQ[B];
   const quoteA = qa ? pick(qa) : '';
   const quoteB = qb ? pick(qb) : '';
-  const ca = CHARACTERS[A] && CHARACTERS[A][0] ? CHARACTERS[A][0][0] : pA.name;
-  const cb = CHARACTERS[B] && CHARACTERS[B][0] ? CHARACTERS[B][0][0] : pB.name;
+  const ca = CH[A] && CH[A][0] ? CH[A][0][0] : pA.name;
+  const cb = CH[B] && CH[B][0] ? CH[B][0][0] : pB.name;
 
   return { golden, score, tier, power, friction, date, quoteA, quoteB, ca, cb,
     bars: [['💬 Communication', comm], ['🤝 Teamwork', team], ['🎉 Fun', fun], ['💖 Heart', heart]] };
@@ -1270,7 +1280,12 @@ document.getElementById('themeToggleBtn').addEventListener('click', () => {
   }
 });
 
-applyTheme(!!window.__light);
+let initialLight = window.__light;
+if (initialLight === undefined) {
+  initialLight = true;   // day mode is the default
+  try { const t = localStorage.getItem('aura_theme'); if (t) initialLight = (t === 'light'); } catch (e) {}
+}
+applyTheme(!!initialLight);
 
 /* DOWNLOAD BADGE IMAGE GENERATOR VIA HTML CANVAS */
 /* ==========================================================================
@@ -1591,8 +1606,8 @@ let deferredInstall = null;
 const installBtn = document.getElementById('installBtn');
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
-function showInstallBtn() { installBtn.classList.remove('hidden'); installBtn.classList.add('flex'); }
-function hideInstallBtn() { installBtn.classList.add('hidden'); installBtn.classList.remove('flex'); }
+function showInstallBtn() { if (!installBtn) return; installBtn.classList.remove('hidden'); installBtn.classList.add('flex'); }
+function hideInstallBtn() { if (!installBtn) return; installBtn.classList.add('hidden'); installBtn.classList.remove('flex'); }
 
 window.addEventListener('beforeinstallprompt', e => {
   e.preventDefault();
@@ -1602,7 +1617,7 @@ window.addEventListener('beforeinstallprompt', e => {
 window.addEventListener('appinstalled', hideInstallBtn);
 if (isIOS && !isStandalone) showInstallBtn();   // iPhones have no install prompt, so we show a hint
 
-installBtn.addEventListener('click', async () => {
+if (installBtn) installBtn.addEventListener('click', async () => {
   if (deferredInstall) {
     deferredInstall.prompt();
     await deferredInstall.userChoice;
@@ -1612,3 +1627,25 @@ installBtn.addEventListener('click', async () => {
     showToast('Tap the Share icon, then "Add to Home Screen"');
   }
 });
+
+
+/* ---------- make sure the Leaderboard is on the Play tab (works even with an older index.html) ---------- */
+(function ensureLeaderboard() {
+  try {
+    const play = document.getElementById('playView');
+    if (play && !document.getElementById('lbList')) {
+      const card = document.createElement('div');
+      card.className = 'glass-card lb-card';
+      card.innerHTML = '<div id="lbList"></div>';
+      const trophies = document.getElementById('trophyGrid');
+      const anchor = trophies && trophies.closest('.glass-card');
+      if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(card, anchor);
+      else play.appendChild(card);
+    }
+    if (!document.querySelector('script[src*="leaderboard.js"]')) {
+      const sc = document.createElement('script');
+      sc.src = 'leaderboard.js';
+      document.body.appendChild(sc);
+    }
+  } catch (e) { console.error('Leaderboard setup error:', e); }
+})();
