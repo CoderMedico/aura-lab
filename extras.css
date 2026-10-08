@@ -1,0 +1,81 @@
+/* ==========================================================================
+   EXTRAS: styles for the Leaderboard and the Synergy report.
+   Plain CSS (no Tailwind), so you do NOT need to rebuild tailwind.css for these.
+   ========================================================================== */
+
+/* ---------- Leaderboard ---------- */
+.lb-card { padding: 24px; border-radius: 24px; }
+.lb-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+.lb-title { display: flex; align-items: center; gap: 8px; font-family: "Space Grotesk", sans-serif; font-weight: 700; font-size: 18px; color: #fff; }
+.light .lb-title { color: #0f172a; }
+.lb-tabs { display: flex; gap: 8px; }
+.lb-tab { padding: 6px 14px; border-radius: 9999px; border: 0; cursor: pointer; font-size: 12px; font-weight: 700; background: #1e293b; color: #94a3b8; transition: all .15s; }
+.lb-tab.on { background: #4f46e5; color: #fff; }
+.light .lb-tab { background: #e2e8f0; color: #475569; }
+.light .lb-tab.on { background: #4f46e5; color: #fff; }
+.lb-foot { font-size: 11px; color: #64748b; margin-top: 12px; }
+.lb-note { font-size: 14px; color: #94a3b8; text-align: center; padding: 16px 0; }
+.light .lb-note { color: #475569; }
+.lb-list { display: flex; flex-direction: column; gap: 8px; }
+.lb-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgba(99,102,241,.08); border: 1px solid rgba(99,102,241,.15); }
+.lb-rank { width: 30px; text-align: center; font-weight: 800; font-size: 15px; }
+.lb-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; font-size: 14px; color: inherit; }
+.lb-time { font-size: 11px; opacity: .6; font-family: "Space Grotesk", sans-serif; }
+.lb-score { font-family: "Space Grotesk", sans-serif; font-weight: 800; font-size: 15px; color: #818cf8; }
+.light .lb-score { color: #4f46e5; }
+
+.lb-submit { text-align: center; padding-top: 8px; }
+.lb-submit-hint { font-size: 12px; color: #94a3b8; margin-bottom: 8px; }
+.lb-submit-row { display: flex; gap: 8px; justify-content: center; }
+.lb-input { background: rgba(15,23,42,.9); border: 1px solid #334155; color: #fff; border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 600; outline: none; min-width: 0; flex: 1; max-width: 220px; }
+.lb-input:focus { border-color: #6366f1; }
+.light .lb-input { background: #fff; color: #0f172a; border-color: #cbd5e1; }
+.lb-btn { padding: 8px 16px; border-radius: 12px; border: 0; cursor: pointer; background: #4f46e5; color: #fff; font-size: 14px; font-weight: 700; transition: background .15s; }
+.lb-btn:hover { background: #6366f1; }
+.lb-btn:disabled { opacity: .6; cursor: default; }
+.lb-msg { font-size: 12px; margin-top: 8px; color: #94a3b8; }
+.lb-ok { font-size: 14px; font-weight: 700; color: #34d399; }
+.light .lb-ok { color: #059669; }
+
+/* ---------- Synergy report ---------- */
+.syn { display: flex; flex-direction: column; gap: 20px; }
+.syn-head { text-align: center; }
+.syn-emoji { font-size: 36px; line-height: 1.2; margin-bottom: 4px; }
+.syn-score { font-family: "Space Grotesk", sans-serif; font-size: 48px; font-weight: 800; line-height: 1.1;
+  background: linear-gradient(135deg, #a855f7, #6366f1, #3b82f6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.syn-tier { font-family: "Space Grotesk", sans-serif; font-size: 18px; font-weight: 700; color: #fff; margin-top: 2px; }
+.light .syn-tier { color: #0f172a; }
+.syn-sub { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+.light .syn-sub { color: #475569; }
+
+.syn-bars { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px 24px; }
+.syn-bar-top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 4px; }
+.light .syn-bar-top { color: #475569; }
+.syn-track { height: 10px; border-radius: 9999px; background: #1e293b; overflow: hidden; }
+.light .syn-track { background: #e2e8f0; }
+.syn-fill { height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899); }
+
+.syn-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.syn-card { padding: 16px; border-radius: 16px; border: 1px solid transparent; }
+.syn-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+.syn-text { font-size: 14px; line-height: 1.5; color: #cbd5e1; }
+.light .syn-text { color: #334155; }
+.syn-green  { background: rgba(16,185,129,.10); border-color: rgba(16,185,129,.20); }
+.syn-green .syn-label  { color: #34d399; }
+.syn-amber  { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.20); }
+.syn-amber .syn-label  { color: #fbbf24; }
+.syn-indigo { background: rgba(99,102,241,.10); border-color: rgba(99,102,241,.20); }
+.syn-indigo .syn-label { color: #818cf8; }
+.light .syn-green .syn-label  { color: #059669; }
+.light .syn-amber .syn-label  { color: #d97706; }
+.light .syn-indigo .syn-label { color: #4f46e5; }
+
+.syn-chat { display: flex; flex-direction: column; gap: 8px; }
+.syn-chat-title { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #94a3b8; }
+.light .syn-chat-title { color: #475569; }
+.syn-line { font-size: 14px; font-style: italic; color: #cbd5e1; }
+.light .syn-line { color: #334155; }
+.syn-line strong { font-style: normal; }
+.syn-movie { font-size: 14px; color: #cbd5e1; }
+.light .syn-movie { color: #334155; }
+.syn-foot { font-size: 11px; color: #64748b; }

@@ -1,3 +1,6 @@
+/* load extras.css (Leaderboard + Synergy styles) */
+(function () { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'extras.css'; document.head.appendChild(l); })();
+
 /* ==========================================================================
    DATA MODEL: 16 PERSONAS & METADATA
    ========================================================================== */
@@ -1009,8 +1012,8 @@ function openPersonaModal(p) {
     <div class="pt-5 border-t border-slate-700/50">${profileSectionsHTML(p.code, true)}</div>
   `;
 
-    openOverlay('personaModal');
-  const sc = document.getElementById('modalScroll');
+  openOverlay('personaModal');
+  const sc = document.getElementById('modalScroll');   // reset AFTER it is visible, otherwise the browser ignores it
   sc.scrollTop = 0;
   requestAnimationFrame(() => { sc.scrollTop = 0; });
 }
@@ -1023,22 +1026,95 @@ document.getElementById('personaModal').addEventListener('click', e => {
 /* ==========================================================================
    COMPARISON & SYNERGY ENGINE
    ========================================================================== */
+let compareReady = false;
+const COMPARE_KEY = 'aura_compare';
+
 function initCompareView() {
   const selA = document.getElementById('compareSelectA');
   const selB = document.getElementById('compareSelectB');
 
-  const options = Object.values(PERSONAS).map(p => `<option value="${p.code}">${p.code} - ${p.name}</option>`).join('');
-  selA.innerHTML = options;
-  selB.innerHTML = options;
+  // build the menus and listeners only ONCE, so opening the tab again never resets your picks
+  if (!compareReady) {
+    compareReady = true;
+    const options = Object.values(PERSONAS).map(p => `<option value="${p.code}">${p.code} - ${p.name}</option>`).join('');
+    selA.innerHTML = options;
+    selB.innerHTML = options;
 
-  selB.value = "ENFP"; // Default second selection
+    let saved = {};
+    try { saved = JSON.parse(localStorage.getItem(COMPARE_KEY) || '{}'); } catch (e) { saved = {}; }
+    const mine = (typeof lastResultBaseCode === 'function') ? lastResultBaseCode() : '';
+    selA.value = PERSONAS[saved.a] ? saved.a : (PERSONAS[mine] ? mine : 'INTJ');
+    selB.value = PERSONAS[saved.b] ? saved.b : (selA.value === 'ENFP' ? 'INTJ' : 'ENFP');
 
-  selA.addEventListener('change', updateCompare);
-  selB.addEventListener('change', updateCompare);
-  selA.addEventListener('change', () => bumpStat('compares'));
-  selB.addEventListener('change', () => bumpStat('compares'));
-
+    const onChange = () => {
+      try { localStorage.setItem(COMPARE_KEY, JSON.stringify({ a: selA.value, b: selB.value })); } catch (e) { /* storage unavailable */ }
+      updateCompare();
+      bumpStat('compares');
+    };
+    selA.addEventListener('change', onChange);
+    selB.addEventListener('change', onChange);
+  }
   updateCompare();
+}
+
+/* Fun synergy report. The same pair always gets the same result (A+B = B+A). */
+function buildSynergy(pA, pB) {
+  const A = pA.code, B = pB.code;
+  const same = i => A[i] === B[i];
+  const rng = seededRng(hashStr('synergy|' + [A, B].sort().join('+')));
+  const jitter = () => Math.floor(rng() * 7) - 3;
+  const pick = arr => arr[Math.floor(rng() * arr.length)];
+  const clamp = n => Math.max(35, Math.min(99, Math.round(n)));
+  const golden = (DAILY_MATCHES[A] || []).includes(B) || (DAILY_MATCHES[B] || []).includes(A);
+  const g = golden ? 8 : 0;
+  const fCount = (A[2] === 'F' ? 1 : 0) + (B[2] === 'F' ? 1 : 0);
+
+  const comm  = clamp(50 + (same(1) ? 24 : 6) + (same(2) ? 12 : 8) + g + jitter());
+  const team  = clamp(52 + (same(3) ? 14 : 18) + (same(2) ? 10 : 6) + g + jitter());
+  const fun   = clamp(50 + (A[0] === 'E' && B[0] === 'E' ? 26 : (!same(0) ? 18 : 10)) + (A[3] === 'P' || B[3] === 'P' ? 12 : 4) + g + jitter());
+  const heart = clamp(46 + fCount * 12 + (same(1) ? 8 : 4) + g + jitter());
+  const score = clamp((comm + team + fun + heart) / 4 + (golden ? 5 : 0));
+
+  const tier = score >= 90 ? { icon: '💞', name: 'Soulmate Sync' }
+    : score >= 80 ? { icon: '🚀', name: 'Dream Team' }
+    : score >= 70 ? { icon: '✨', name: 'Great Chemistry' }
+    : score >= 60 ? { icon: '🌶️', name: 'Spicy Mix' }
+    : { icon: '🎭', name: 'Plot-Twist Duo' };
+
+  const power = A === B
+    ? 'You are basically mirrors. Instant understanding, zero explaining.'
+    : same(1)
+      ? (A[1] === 'N' ? 'You two can invent entire universes in one conversation.' : 'You two turn plans into results with no drama and no wasted steps.')
+      : 'One of you dreams it up, the other makes it real. Scary good combination.';
+
+  const frictions = [];
+  if (!same(0)) frictions.push('One wants a night out, the other wants a night in. Settle it with snacks.');
+  if (!same(1)) frictions.push('One explains with facts, the other with big ideas. Both are right.');
+  if (!same(2)) frictions.push('One says the blunt truth, the other asks how it feels. Translate for each other.');
+  if (!same(3)) frictions.push('One has a schedule, the other has vibes. Meet in the middle.');
+  if (!frictions.length) frictions.push('You might both dodge the same hard thing. Take turns being the brave one.');
+  const friction = pick(frictions);
+
+  const dates = [
+    'Cook a new recipe together and rate it like judges.',
+    'Pick a random bus, ride it, and explore wherever it ends.',
+    'Build something together: a playlist, a fort, a tiny app.',
+    'Do a 2-hour board game night with a snack budget.',
+    'Take a sunset walk where the only rule is no phones.',
+    'Debate a silly topic, like whether a hot dog is a sandwich.',
+    'Do a mini road trip with a mystery destination.',
+    'Visit a bookstore and pick a book for each other.'
+  ];
+  const date = pick(dates);
+
+  const qa = TYPE_QUOTES[A], qb = TYPE_QUOTES[B];
+  const quoteA = qa ? pick(qa) : '';
+  const quoteB = qb ? pick(qb) : '';
+  const ca = CHARACTERS[A] && CHARACTERS[A][0] ? CHARACTERS[A][0][0] : pA.name;
+  const cb = CHARACTERS[B] && CHARACTERS[B][0] ? CHARACTERS[B][0][0] : pB.name;
+
+  return { golden, score, tier, power, friction, date, quoteA, quoteB, ca, cb,
+    bars: [['💬 Communication', comm], ['🤝 Teamwork', team], ['🎉 Fun', fun], ['💖 Heart', heart]] };
 }
 
 function updateCompare() {
@@ -1047,29 +1123,61 @@ function updateCompare() {
 
   const pA = PERSONAS[codeA];
   const pB = PERSONAS[codeB];
+  if (!pA || !pB) return;
 
   document.getElementById('compareDetailsA').innerHTML = `
     <div class="text-3xl mb-1">${pA.emoji}</div>
     <p class="font-bold text-white">${pA.name}</p>
     <p class="text-xs text-slate-400">${pA.summary}</p>
   `;
-
   document.getElementById('compareDetailsB').innerHTML = `
     <div class="text-3xl mb-1">${pB.emoji}</div>
     <p class="font-bold text-white">${pB.name}</p>
     <p class="text-xs text-slate-400">${pB.summary}</p>
   `;
 
-  // Calculate compatibility score based on MBTI matching heuristic
-  let matchScore = 70;
-  if (pA.group === pB.group) matchScore += 15;
-  if (pA.code[1] === pB.code[1]) matchScore += 10; // N/S match
-
+  const r = buildSynergy(pA, pB);
   document.getElementById('synergyReportText').innerHTML = `
-    <span class="block font-display text-2xl font-bold text-emerald-400 mb-2">${matchScore}% Synergy Rating</span>
-    When <strong>${pA.code} (${pA.name})</strong> collaborates with <strong>${pB.code} (${pB.name})</strong>, 
-    their dynamic is characterized by a blend of ${pA.group === pB.group ? 'shared values and vision' : 'complementary contrasting strengths'}. 
-    ${pA.code[0] !== pB.code[0] ? 'One brings extraverted energy while the other provides quiet depth.' : 'Both share similar energy levels during interactions.'}
+    <div class="syn">
+      <div class="syn-head">
+        <div class="syn-emoji">${pA.emoji} + ${pB.emoji}</div>
+        <div class="syn-score">${r.score}%</div>
+        <div class="syn-tier">${r.tier.icon} ${r.tier.name}</div>
+        <div class="syn-sub">${pA.code} + ${pB.code}${r.golden ? ' · ⭐ Famous power pair' : ''}</div>
+      </div>
+
+      <div class="syn-bars">
+        ${r.bars.map(b => `
+          <div>
+            <div class="syn-bar-top"><span>${b[0]}</span><span>${b[1]}%</span></div>
+            <div class="syn-track"><div class="syn-fill" style="width:${b[1]}%"></div></div>
+          </div>`).join('')}
+      </div>
+
+      <div class="syn-cards">
+        <div class="syn-card syn-green">
+          <div class="syn-label">🦸 Superpower together</div>
+          <div class="syn-text">${r.power}</div>
+        </div>
+        <div class="syn-card syn-amber">
+          <div class="syn-label">⚠️ Watch out</div>
+          <div class="syn-text">${r.friction}</div>
+        </div>
+        <div class="syn-card syn-indigo">
+          <div class="syn-label">🎟️ Hangout idea</div>
+          <div class="syn-text">${r.date}</div>
+        </div>
+      </div>
+
+      <div class="syn-chat">
+        <div class="syn-chat-title">💬 If they texted each other</div>
+        <div class="syn-line"><strong>${pA.emoji} ${pA.code}:</strong> "${r.quoteA}"</div>
+        <div class="syn-line"><strong>${pB.emoji} ${pB.code}:</strong> "${r.quoteB}"</div>
+      </div>
+
+      <div class="syn-movie">🎬 Movie version: <strong>${r.ca}</strong> + <strong>${r.cb}</strong>.</div>
+      <div class="syn-foot">Just for fun. Any two types can get along great.</div>
+    </div>
   `;
 }
 

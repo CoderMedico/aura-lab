@@ -3,10 +3,11 @@
    1) Paste your two values below.  2) That's it.
    The public key is SAFE to keep here: the database rules (set in setup.sql) only
    allow reading scores and adding new ones.
+   Styles live in extras.css (plain CSS, no Tailwind rebuild needed).
    ========================================================================== */
 (function () {
-  const SUPABASE_URL = "https://cshattnrzcqbbvovujpy.supabase.co";        // e.g. https://abcdxyz.supabase.co
-  const SUPABASE_KEY = "sb_publishable_Wt0c_ohLNi4qsVc1DIpDQw_5yc3msvx";         // the "anon public" or "publishable" key
+  const SUPABASE_URL = "PASTE_YOUR_PROJECT_URL_HERE";        // e.g. https://abcdxyz.supabase.co
+  const SUPABASE_KEY = "PASTE_YOUR_PUBLIC_KEY_HERE";         // the "anon public" or "publishable" key
 
   const TABLE = SUPABASE_URL + "/rest/v1/scores";
   const ready = !/PASTE_YOUR/.test(SUPABASE_URL + SUPABASE_KEY);
@@ -17,26 +18,24 @@
   let startedAt = Date.now();
 
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const note = t => `<p class="text-sm text-slate-400 text-center py-4">${t}</p>`;
+  const note = t => `<p class="lb-note">${t}</p>`;
 
-  /* ---------- styles (injected so no other file needs editing) ---------- */
-  const st = document.createElement("style");
-  st.textContent = `
-    .lb-input{background:rgba(15,23,42,.9);border:1px solid #334155;color:#fff;border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;outline:none;min-width:0;flex:1;max-width:220px}
-    .lb-input:focus{border-color:#6366f1}
-    .light .lb-input{background:#fff;color:#0f172a;border-color:#cbd5e1}
-    .lb-tab{padding:6px 14px;border-radius:9999px;font-size:12px;font-weight:700;background:#1e293b;color:#94a3b8;transition:all .15s}
-    .lb-tab.on{background:#4f46e5;color:#fff}
-    .light .lb-tab{background:#e2e8f0;color:#475569}
-    .light .lb-tab.on{background:#4f46e5;color:#fff}
-    .lb-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:14px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15)}
-    .lb-rank{width:30px;text-align:center;font-weight:800;font-size:15px}
-    .lb-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:14px;color:inherit}
-    .lb-time{font-size:11px;opacity:.6;font-family:"Space Grotesk",sans-serif}
-    .lb-score{font-family:"Space Grotesk",sans-serif;font-weight:800;font-size:15px;color:#818cf8}
-    .light .lb-score{color:#4f46e5}
-  `;
-  document.head.appendChild(st);
+  /* ---------- rebuild the card with plain-CSS markup (so index.html needs no changes) ---------- */
+  const oldList = document.getElementById("lbList");
+  const card = oldList && oldList.closest(".glass-card");
+  if (card) {
+    card.className = "glass-card lb-card";
+    card.innerHTML = `
+      <div class="lb-head">
+        <h3 class="lb-title"><span>🏅</span> Leaderboard · Guess the Type</h3>
+        <div class="lb-tabs">
+          <button class="lb-tab on" data-lb-range="today">Today</button>
+          <button class="lb-tab" data-lb-range="all">All time</button>
+        </div>
+      </div>
+      <div id="lbList"></div>
+      <p class="lb-foot">Top 10 by score, then by speed. Nicknames are public.</p>`;
+  }
 
   /* ---------- read the top 10 ---------- */
   async function fetchTop() {
@@ -64,7 +63,7 @@
       const rows = await fetchTop();
       if (!rows.length) { box.innerHTML = note("No scores yet. Be the first! 🎯"); return; }
       const medals = ["🥇", "🥈", "🥉"];
-      box.innerHTML = '<div class="space-y-2">' + rows.map((r, i) => `
+      box.innerHTML = '<div class="lb-list">' + rows.map((r, i) => `
         <div class="lb-row">
           <span class="lb-rank">${medals[i] || i + 1}</span>
           <span class="lb-name">${esc(r.name)}</span>
@@ -100,14 +99,14 @@
     try { saved = localStorage.getItem("aura_lb_name") || ""; } catch (e) {}
 
     const box = document.createElement("div");
-    box.className = "text-center pt-2";
+    box.className = "lb-submit";
     box.innerHTML = `
-      <p class="text-xs text-slate-400 mb-2">Add your score to the leaderboard</p>
-      <div class="flex gap-2 justify-center">
+      <p class="lb-submit-hint">Add your score to the leaderboard</p>
+      <div class="lb-submit-row">
         <input id="lbName" class="lb-input" maxlength="16" placeholder="Your nickname" value="${esc(saved)}">
-        <button id="lbSubmitBtn" class="px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-bold transition-all">Submit</button>
+        <button id="lbSubmitBtn" class="lb-btn">Submit</button>
       </div>
-      <p id="lbMsg" class="text-xs mt-2 text-slate-400">Only your nickname and score are saved.</p>`;
+      <p id="lbMsg" class="lb-msg">Only your nickname and score are saved.</p>`;
     area.appendChild(box);
 
     const btn = box.querySelector("#lbSubmitBtn");
@@ -120,7 +119,7 @@
       try {
         await submitScore(name, score, timeMs);
         try { localStorage.setItem("aura_lb_name", name); } catch (e) {}
-        box.innerHTML = '<p class="text-sm font-bold text-emerald-400">Saved! Check the leaderboard below 🏅</p>';
+        box.innerHTML = '<p class="lb-ok">Saved! Check the leaderboard below 🏅</p>';
         range = "today";
         window.renderLeaderboard();
       } catch (e) {
