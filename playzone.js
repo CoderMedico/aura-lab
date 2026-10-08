@@ -2,6 +2,50 @@
    PLAY ZONE: daily forecast, "Guess the Type" mini-game, trophies
    ========================================================================== */
 
+/* Daily forecast styles are injected right here (plain CSS, applied instantly),
+   so the card can never appear half-styled while other CSS files are still loading. */
+(function () {
+  if (document.getElementById("dailyCss")) return;
+  const st = document.createElement("style");
+  st.id = "dailyCss";
+  st.textContent = `
+    .dly { display: flex; flex-direction: column; gap: 20px; }
+    .dly-date { font-size: 12px; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: .1em; color: #818cf8; }
+    .light .dly-date { color: #4f46e5; }
+    .dly-mood { font-family: "Space Grotesk", sans-serif; font-size: 22px; font-weight: 700; line-height: 1.3; color: #fff; margin-top: 4px; }
+    .light .dly-mood { color: #0f172a; }
+    .dly-vibe-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; }
+    .light .dly-vibe-top { color: #475569; }
+    .dly-track { display: block; height: 12px; width: 100%; border-radius: 9999px; background: #1e293b; overflow: hidden; }
+    .light .dly-track { background: #e2e8f0; }
+    .dly-fill { display: block; height: 100%; border-radius: 9999px; background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899); }
+    .dly-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; text-align: center; }
+    .dly-stat { padding: 12px; border-radius: 16px; }
+    .dly-swatch { width: 32px; height: 32px; border-radius: 9999px; margin: 0 auto 6px; border: 1px solid rgba(255,255,255,.3); }
+    .dly-num { font-family: "Space Grotesk", sans-serif; font-size: 24px; font-weight: 800; line-height: 32px; margin-bottom: 6px;
+      background: linear-gradient(135deg, #a855f7, #6366f1, #3b82f6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+    .dly-emoji { font-size: 24px; line-height: 32px; margin-bottom: 6px; }
+    .dly-cap { font-size: 10px; text-transform: uppercase; letter-spacing: .06em; color: #94a3b8; }
+    .light .dly-cap { color: #475569; }
+    .dly-val { font-size: 12px; font-weight: 700; color: #e2e8f0; min-height: 18px; }
+    .light .dly-val { color: #1e293b; }
+    .dly-cards { display: grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 768px) { .dly-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    .dly-card { padding: 16px; border-radius: 16px; border: 1px solid transparent; }
+    .dly-label { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
+    .dly-text { font-size: 14px; line-height: 1.5; color: #cbd5e1; }
+    .light .dly-text { color: #334155; }
+    .dly-green { background: rgba(16,185,129,.10); border-color: rgba(16,185,129,.20); }
+    .dly-green .dly-label { color: #34d399; }
+    .dly-amber { background: rgba(245,158,11,.10); border-color: rgba(245,158,11,.20); }
+    .dly-amber .dly-label { color: #fbbf24; }
+    .light .dly-green .dly-label { color: #059669; }
+    .light .dly-amber .dly-label { color: #d97706; }
+    .dly-foot { font-size: 11px; color: #64748b; }
+  `;
+  document.head.appendChild(st);
+})();
+
 function renderPlayZone() {
   renderDaily();
   renderGameIdle();
@@ -45,48 +89,46 @@ function renderDaily() {
   const dateText = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" });
 
   document.getElementById("dailyCard").innerHTML = `
-    <div class="space-y-5">
+    <div class="dly">
       <div>
-        <p class="text-xs font-mono uppercase tracking-widest text-indigo-400">${dateText} · ${persona.emoji} ${code}</p>
-        <p class="font-display text-xl sm:text-2xl font-bold text-white mt-1">${f.mood}</p>
+        <div class="dly-date">${dateText} · ${persona.emoji} ${code}</div>
+        <div class="dly-mood">${f.mood}</div>
       </div>
 
       <div>
-        <div class="flex justify-between text-xs font-semibold text-slate-400 mb-1.5"><span>Today's vibe</span><span>${f.vibe}%</span></div>
-        <div class="h-3 w-full rounded-full bg-slate-800 overflow-hidden">
-          <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" style="width:${f.vibe}%"></div>
+        <div class="dly-vibe-top"><span>Today's vibe</span><span>${f.vibe}%</span></div>
+        <div class="dly-track"><div class="dly-fill" style="width:${f.vibe}%"></div></div>
+      </div>
+
+      <div class="dly-stats">
+        <div class="glass-card dly-stat">
+          <div class="dly-swatch" style="background:${f.color.hex}"></div>
+          <div class="dly-cap">Lucky color</div>
+          <div class="dly-val">${f.color.name}</div>
+        </div>
+        <div class="glass-card dly-stat">
+          <div class="dly-num">${f.lucky}</div>
+          <div class="dly-cap">Lucky number</div>
+          <div class="dly-val">&nbsp;</div>
+        </div>
+        <div class="glass-card dly-stat">
+          <div class="dly-emoji">${PERSONAS[f.match].emoji}</div>
+          <div class="dly-cap">Best energy</div>
+          <div class="dly-val">${f.match}</div>
         </div>
       </div>
 
-      <div class="grid grid-cols-3 gap-3 text-center">
-        <div class="glass-card p-3 rounded-2xl">
-          <div class="w-8 h-8 rounded-full mx-auto mb-1.5 border border-white/30" style="background:${f.color.hex}"></div>
-          <p class="text-[10px] uppercase tracking-wider text-slate-400">Lucky color</p>
-          <p class="text-xs font-bold text-slate-200">${f.color.name}</p>
+      <div class="dly-cards">
+        <div class="dly-card dly-green">
+          <div class="dly-label">🎯 Today's mission</div>
+          <div class="dly-text">${f.mission}</div>
         </div>
-        <div class="glass-card p-3 rounded-2xl">
-          <div class="text-2xl font-display font-extrabold gradient-text leading-8 mb-1.5">${f.lucky}</div>
-          <p class="text-[10px] uppercase tracking-wider text-slate-400">Lucky number</p>
-          <p class="text-xs font-bold text-slate-200">&nbsp;</p>
-        </div>
-        <div class="glass-card p-3 rounded-2xl">
-          <div class="text-2xl leading-8 mb-1.5">${PERSONAS[f.match].emoji}</div>
-          <p class="text-[10px] uppercase tracking-wider text-slate-400">Best energy</p>
-          <p class="text-xs font-bold text-slate-200">${f.match}</p>
+        <div class="dly-card dly-amber">
+          <div class="dly-label">⚠️ Watch out</div>
+          <div class="dly-text">${f.warning}</div>
         </div>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div class="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-          <p class="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1">🎯 Today's mission</p>
-          <p class="text-sm text-slate-300">${f.mission}</p>
-        </div>
-        <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
-          <p class="text-[10px] font-bold uppercase tracking-widest text-amber-400 mb-1">⚠️ Watch out</p>
-          <p class="text-sm text-slate-300">${f.warning}</p>
-        </div>
-      </div>
-      <p class="text-[11px] text-slate-500">Just for fun. Come back tomorrow for a new one.</p>
+      <div class="dly-foot">Just for fun. Come back tomorrow for a new one.</div>
     </div>`;
 
   // count this day for the "Daily Ritual" trophy
